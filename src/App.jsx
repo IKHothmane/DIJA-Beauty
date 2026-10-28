@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Search,
   User,
@@ -20,94 +20,49 @@ import {
   Award,
   Check,
 } from 'lucide-react'
+import { LANGS, getStoredLang, translations } from './i18n'
 
-const ANNOUNCEMENTS = [
-  'Livraison gratuite dès 490 MAD',
-  '−10 % sur votre première commande | Code : DIJA10',
-  'Retours faciles sous 30 jours',
+const CATEGORY_IMAGES = [
+  'https://images.unsplash.com/photo-1632345031435-8727f6897d53?w=600&q=80',
+  'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&q=80',
+  'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=600&q=80',
+  'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=600&q=80',
+  'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&q=80',
+  'https://images.unsplash.com/photo-1610992015732-2449b76344bc?w=600&q=80',
 ]
 
-const NAV = [
-  'Accueil',
-  'Boutique',
-  'Nail Art',
-  'Vernis Gel',
-  'Outils & Accessoires',
-  'Kits',
-  'Nouveautés',
-]
-
-const CATEGORIES = [
+const PRODUCT_DATA = [
   {
-    name: 'Vernis Gel',
-    image:
-      'https://images.unsplash.com/photo-1632345031435-8727f6897d53?w=600&q=80',
-  },
-  {
-    name: 'Outils Nail Art',
-    image:
-      'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&q=80',
-  },
-  {
-    name: 'Décor Nail Art',
-    image:
-      'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=600&q=80',
-  },
-  {
-    name: 'Press-On Nails',
-    image:
-      'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=600&q=80',
-  },
-  {
-    name: 'Stickers Ongles',
-    image:
-      'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&q=80',
-  },
-  {
-    name: 'Kits Complets',
-    image:
-      'https://images.unsplash.com/photo-1610992015732-2449b76344bc?w=600&q=80',
-  },
-]
-
-const PRODUCTS = [
-  {
-    name: 'Vernis Gel Blush Pink',
     price: '129 MAD',
     rating: 5,
     image:
       'https://images.unsplash.com/photo-1632345031435-8727f6897d53?w=500&q=80',
   },
   {
-    name: 'Set Pinceaux Liner',
     price: '189 MAD',
     rating: 5,
     image:
       'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=500&q=80',
   },
   {
-    name: 'Paillettes Holographiques',
     price: '99 MAD',
     rating: 4,
     image:
       'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=500&q=80',
   },
   {
-    name: 'Stickers Foil Or',
     price: '79 MAD',
     rating: 5,
     image:
       'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=500&q=80',
   },
   {
-    name: 'Kit French Manucure',
     price: '249 MAD',
     rating: 5,
     image:
       'https://images.unsplash.com/photo-1610992015732-2449b76344bc?w=500&q=80',
   },
   {
-    name: 'Press-On Nude Soft',
     price: '159 MAD',
     rating: 4,
     image:
@@ -124,9 +79,12 @@ const INSPIRATIONS = [
   'https://images.unsplash.com/photo-1610992015732-2449b76344bc?w=500&q=80',
 ]
 
-function Stars({ count }) {
+const SERVICE_ICONS = [Truck, ShieldCheck, RotateCcw, Headphones]
+const TRUST_ICONS = [Award, Sparkles, Leaf, Heart]
+
+function Stars({ count, label }) {
   return (
-    <span className="stars" aria-label={`${count} sur 5`}>
+    <span className="stars" aria-label={label}>
       {Array.from({ length: 5 }).map((_, i) => (
         <Star
           key={i}
@@ -140,6 +98,7 @@ function Stars({ count }) {
 }
 
 export default function App() {
+  const [lang, setLang] = useState(getStoredLang)
   const [annIndex, setAnnIndex] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const [cartCount, setCartCount] = useState(0)
@@ -147,12 +106,44 @@ export default function App() {
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
 
+  const t = translations[lang]
+  const dir = LANGS.find((l) => l.code === lang)?.dir || 'ltr'
+
+  const categories = useMemo(
+    () =>
+      t.categories.items.map((name, i) => ({
+        name,
+        image: CATEGORY_IMAGES[i],
+      })),
+    [t]
+  )
+
+  const products = useMemo(
+    () =>
+      t.bestsellers.products.map((name, i) => ({
+        name,
+        ...PRODUCT_DATA[i],
+      })),
+    [t]
+  )
+
   useEffect(() => {
+    document.documentElement.lang = lang
+    document.documentElement.dir = dir
+    try {
+      localStorage.setItem('dija-lang', lang)
+    } catch {
+      /* ignore */
+    }
+  }, [lang, dir])
+
+  useEffect(() => {
+    setAnnIndex(0)
     const id = setInterval(() => {
-      setAnnIndex((i) => (i + 1) % ANNOUNCEMENTS.length)
+      setAnnIndex((i) => (i + 1) % t.announcements.length)
     }, 3500)
     return () => clearInterval(id)
-  }, [])
+  }, [t.announcements.length, lang])
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
@@ -164,6 +155,7 @@ export default function App() {
   useEffect(() => {
     const nodes = document.querySelectorAll('.reveal')
     if (!nodes.length) return
+    nodes.forEach((node) => node.classList.remove('is-in'))
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduced) {
       nodes.forEach((node) => node.classList.add('is-in'))
@@ -181,7 +173,12 @@ export default function App() {
     )
     nodes.forEach((node) => observer.observe(node))
     return () => observer.disconnect()
-  }, [])
+  }, [lang])
+
+  const changeLang = (code) => {
+    setLang(code)
+    setMenuOpen(false)
+  }
 
   const toggleWish = (name) => {
     setWishlist((w) => ({ ...w, [name]: !w[name] }))
@@ -197,17 +194,17 @@ export default function App() {
   }
 
   return (
-    <div className="page">
+    <div className="page" lang={lang} dir={dir}>
       <div className="announce">
-        <p key={annIndex} className="announce-text">
-          {ANNOUNCEMENTS[annIndex]}
+        <p key={`${lang}-${annIndex}`} className="announce-text">
+          {t.announcements[annIndex]}
         </p>
       </div>
 
       <header className="header">
         <button
           className="icon-btn menu-btn"
-          aria-label="Menu"
+          aria-label={t.aria.menu}
           onClick={() => setMenuOpen(true)}
         >
           <Menu size={22} />
@@ -217,29 +214,41 @@ export default function App() {
           DIJA Beauty
         </a>
 
-        <nav className="nav-desktop" aria-label="Navigation principale">
-          {NAV.map((item) => (
+        <nav className="nav-desktop" aria-label={t.aria.nav}>
+          {t.nav.map((item, i) => (
             <a
-              key={item}
-              href={`#${item === 'Accueil' ? 'accueil' : 'boutique'}`}
-              className={item === 'Accueil' ? 'active' : undefined}
+              key={item.label}
+              href={item.href}
+              className={i === 0 ? 'active' : undefined}
             >
-              {item}
+              {item.label}
             </a>
           ))}
         </nav>
 
         <div className="header-actions">
-          <button className="icon-btn" aria-label="Rechercher">
+          <div className="lang-switch" role="group" aria-label={t.aria.language}>
+            {LANGS.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                className={lang === l.code ? 'active' : undefined}
+                onClick={() => changeLang(l.code)}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+          <button className="icon-btn" aria-label={t.aria.search}>
             <Search size={20} />
           </button>
-          <button className="icon-btn desktop-only" aria-label="Compte">
+          <button className="icon-btn desktop-only" aria-label={t.aria.account}>
             <User size={20} />
           </button>
-          <button className="icon-btn" aria-label="Favoris">
+          <button className="icon-btn" aria-label={t.aria.wishlist}>
             <Heart size={20} />
           </button>
-          <button className="icon-btn cart-btn" aria-label="Panier">
+          <button className="icon-btn cart-btn" aria-label={t.aria.cart}>
             <ShoppingBag size={20} />
             {cartCount > 0 && (
               <span key={cartCount} className="cart-badge">
@@ -256,20 +265,32 @@ export default function App() {
             <span className="logo">DIJA Beauty</span>
             <button
               className="icon-btn"
-              aria-label="Fermer"
+              aria-label={t.aria.close}
               onClick={() => setMenuOpen(false)}
             >
               <X size={22} />
             </button>
           </div>
+          <div className="lang-switch mobile" role="group" aria-label={t.aria.language}>
+            {LANGS.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                className={lang === l.code ? 'active' : undefined}
+                onClick={() => changeLang(l.code)}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
           <nav>
-            {NAV.map((item) => (
+            {t.nav.map((item) => (
               <a
-                key={item}
-                href={`#${item === 'Accueil' ? 'accueil' : 'boutique'}`}
+                key={item.label}
+                href={item.href}
                 onClick={() => setMenuOpen(false)}
               >
-                {item}
+                {item.label}
               </a>
             ))}
           </nav>
@@ -282,61 +303,45 @@ export default function App() {
       <main>
         <section id="accueil" className="hero">
           <div className="hero-copy">
-            <p className="hero-eyebrow">Exprimer · Créer · Briller</p>
+            <p className="hero-eyebrow">{t.hero.eyebrow}</p>
             <h1>
-              DIJA Beauty
-              <em> qui vous ressemble</em>
+              {t.hero.title}
+              <em>{t.hero.titleEm}</em>
             </h1>
-            <p className="hero-lead">
-              Produits premium pour une créativité sans limites. La qualité du
-              salon DIJA, désormais à portée de main à Rabat.
-            </p>
+            <p className="hero-lead">{t.hero.lead}</p>
             <div className="hero-ctas">
               <a href="#bestsellers" className="btn btn-dark">
-                Acheter maintenant <ArrowRight size={16} />
+                {t.hero.shop} <ArrowRight size={16} />
               </a>
               <a href="#inspire" className="btn btn-outline">
-                Explorer DIJA Beauty
+                {t.hero.explore}
               </a>
             </div>
             <ul className="trust-row">
-              <li>
-                <span className="trust-ico">
-                  <Award size={16} strokeWidth={1.5} />
-                </span>
-                Qualité salon
-              </li>
-              <li>
-                <span className="trust-ico">
-                  <Sparkles size={16} strokeWidth={1.5} />
-                </span>
-                Tenue longue durée
-              </li>
-              <li>
-                <span className="trust-ico">
-                  <Leaf size={16} strokeWidth={1.5} />
-                </span>
-                Cruelty-free & vegan
-              </li>
-              <li>
-                <span className="trust-ico">
-                  <Heart size={16} strokeWidth={1.5} />
-                </span>
-                Aimé des nail artists
-              </li>
+              {t.hero.trust.map((label, i) => {
+                const Icon = TRUST_ICONS[i]
+                return (
+                  <li key={label}>
+                    <span className="trust-ico">
+                      <Icon size={16} strokeWidth={1.5} />
+                    </span>
+                    {label}
+                  </li>
+                )
+              })}
             </ul>
           </div>
           <div className="hero-stage">
             <div className="hero-media">
               <img
                 src="https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1400&q=85"
-                alt="Manucure nail art réalisée chez DIJA Beauty"
+                alt={t.hero.mediaAlt}
               />
               <div className="hero-card">
                 <MapPin size={16} />
                 <div>
-                  <p>Beauty Salon</p>
-                  <strong>Agdal-Ryad, Rabat</strong>
+                  <p>{t.hero.cardLabel}</p>
+                  <strong>{t.hero.cardPlace}</strong>
                 </div>
               </div>
             </div>
@@ -345,10 +350,10 @@ export default function App() {
 
         <section id="boutique" className="section categories reveal">
           <div className="section-head">
-            <h2>Acheter par catégorie</h2>
+            <h2>{t.categories.title}</h2>
           </div>
           <div className="cat-grid">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <a key={cat.name} href="#bestsellers" className="cat-tile">
                 <div className="cat-img-wrap">
                   <img src={cat.image} alt={cat.name} loading="lazy" />
@@ -356,7 +361,7 @@ export default function App() {
                 <div className="cat-meta">
                   <h3>{cat.name}</h3>
                   <span>
-                    Voir maintenant <ArrowRight size={14} />
+                    {t.categories.seeNow} <ArrowRight size={14} />
                   </span>
                 </div>
               </a>
@@ -366,19 +371,19 @@ export default function App() {
 
         <section id="bestsellers" className="section bestsellers reveal">
           <div className="section-head">
-            <h2>Meilleures ventes</h2>
+            <h2>{t.bestsellers.title}</h2>
             <a href="#boutique" className="link-all">
-              Tout voir <ArrowRight size={14} />
+              {t.bestsellers.seeAll} <ArrowRight size={14} />
             </a>
           </div>
           <div className="product-rail">
-            {PRODUCTS.map((p) => (
+            {products.map((p) => (
               <article key={p.name} className="product-card">
                 <div className="product-img">
                   <img src={p.image} alt={p.name} loading="lazy" />
                   <button
                     className={`wish ${wishlist[p.name] ? 'on' : ''}`}
-                    aria-label="Favori"
+                    aria-label={t.aria.favorite}
                     onClick={() => toggleWish(p.name)}
                   >
                     <Heart
@@ -388,10 +393,13 @@ export default function App() {
                   </button>
                 </div>
                 <h3>{p.name}</h3>
-                <Stars count={p.rating} />
+                <Stars
+                  count={p.rating}
+                  label={t.aria.stars.replace('{n}', String(p.rating))}
+                />
                 <p className="price">{p.price}</p>
                 <button className="add-cart" type="button" onClick={addToCart}>
-                  <ShoppingBag size={14} /> Ajouter au panier
+                  <ShoppingBag size={14} /> {t.bestsellers.addCart}
                 </button>
               </article>
             ))}
@@ -402,79 +410,57 @@ export default function App() {
           <div className="promo-visual">
             <img
               src="https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=900&q=80"
-              alt="Séance nail art chez DIJA Beauty"
+              alt={t.promo.alt}
               loading="lazy"
             />
           </div>
           <div className="promo-center">
-            <h2>Tout pour des ongles sublimés</h2>
-            <p>
-              Vernis, outils et kits sélectionnés pour les passionnées de nail
-              art à Agdal-Ryad et partout au Maroc.
-            </p>
+            <h2>{t.promo.title}</h2>
+            <p>{t.promo.text}</p>
             <a href="#contact" className="btn btn-dark">
-              En savoir plus
+              {t.promo.more}
             </a>
           </div>
           <ul className="promo-list">
-            <li>
-              <Check size={16} /> Qualité professionnelle
-            </li>
-            <li>
-              <Check size={16} /> Sûr & non toxique
-            </li>
-            <li>
-              <Check size={16} /> Tendances & unique
-            </li>
-            <li>
-              <Check size={16} /> Fait avec passion
-            </li>
+            {t.promo.points.map((point) => (
+              <li key={point}>
+                <Check size={16} /> {point}
+              </li>
+            ))}
           </ul>
         </section>
 
         <section id="inspire" className="section inspire reveal">
           <div className="section-head center">
-            <h2>Inspirez-vous</h2>
-            <p className="section-sub">@dijabeauty</p>
+            <h2>{t.inspire.title}</h2>
+            <p className="section-sub">{t.inspire.handle}</p>
           </div>
           <div className="inspire-grid">
             {INSPIRATIONS.map((src, i) => (
               <a key={src + i} href="#inspire" className="inspire-tile">
-                <img src={src} alt={`Inspiration nail art ${i + 1}`} loading="lazy" />
+                <img
+                  src={src}
+                  alt={t.inspire.alt.replace('{n}', String(i + 1))}
+                  loading="lazy"
+                />
               </a>
             ))}
           </div>
         </section>
 
         <section className="services reveal">
-          <div className="service">
-            <Truck size={22} strokeWidth={1.5} />
-            <div>
-              <strong>Livraison</strong>
-              <span>Partout au Maroc</span>
-            </div>
-          </div>
-          <div className="service">
-            <ShieldCheck size={22} strokeWidth={1.5} />
-            <div>
-              <strong>Paiement sécurisé</strong>
-              <span>Cash ou carte</span>
-            </div>
-          </div>
-          <div className="service">
-            <RotateCcw size={22} strokeWidth={1.5} />
-            <div>
-              <strong>Retours faciles</strong>
-              <span>Sous 30 jours</span>
-            </div>
-          </div>
-          <div className="service">
-            <Headphones size={22} strokeWidth={1.5} />
-            <div>
-              <strong>Support</strong>
-              <span>07 67 94 67 85</span>
-            </div>
-          </div>
+          {t.services.map((service, i) => {
+            const Icon = SERVICE_ICONS[i]
+            return (
+              <div className="service" key={service.title}>
+                <Icon size={22} strokeWidth={1.5} />
+                <div>
+                  <strong>{service.title}</strong>
+                  <span>{service.text}</span>
+                </div>
+              </div>
+            )
+          })}
         </section>
       </main>
 
@@ -484,12 +470,9 @@ export default function App() {
             <a href="#accueil" className="logo">
               DIJA Beauty
             </a>
-            <p>
-              Votre destination nail art à Rabat. Produits premium, conseils
-              experts et créativité au quotidien.
-            </p>
+            <p>{t.footer.about}</p>
             <p className="contact-line">
-              <MapPin size={15} /> Agdal-Ryad, Rabat, Morocco
+              <MapPin size={15} /> {t.footer.address}
             </p>
             <p className="contact-line">
               <Phone size={15} />{' '}
@@ -503,57 +486,45 @@ export default function App() {
           </div>
 
           <div>
-            <h4>Boutique</h4>
+            <h4>{t.footer.shop}</h4>
             <ul>
-              <li>
-                <a href="#boutique">Vernis Gel</a>
-              </li>
-              <li>
-                <a href="#boutique">Outils</a>
-              </li>
-              <li>
-                <a href="#boutique">Décor</a>
-              </li>
-              <li>
-                <a href="#bestsellers">Kits</a>
-              </li>
+              {t.footer.shopLinks.map((label, i) => (
+                <li key={label}>
+                  <a href={i === 3 ? '#bestsellers' : '#boutique'}>{label}</a>
+                </li>
+              ))}
             </ul>
           </div>
 
           <div>
-            <h4>Aide</h4>
+            <h4>{t.footer.help}</h4>
             <ul>
-              <li>
-                <a href="#contact">Contact</a>
-              </li>
-              <li>
-                <a href="#contact">Livraison</a>
-              </li>
-              <li>
-                <a href="#contact">Retours</a>
-              </li>
-              <li>
-                <a href="tel:+212767946785">Commander par téléphone</a>
-              </li>
+              {t.footer.helpLinks.map((label, i) => (
+                <li key={label}>
+                  <a href={i === 3 ? 'tel:+212767946785' : '#contact'}>
+                    {label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
           <div className="footer-news">
-            <h4>Rejoignez la communauté</h4>
-            <p>Recevez tendances, conseils et offres exclusives.</p>
+            <h4>{t.footer.community}</h4>
+            <p>{t.footer.communityText}</p>
             {subscribed ? (
-              <p className="thanks">Merci pour votre inscription !</p>
+              <p className="thanks">{t.footer.thanks}</p>
             ) : (
               <form onSubmit={onSubscribe} className="news-form">
                 <input
                   type="email"
-                  placeholder="Votre e-mail"
+                  placeholder={t.footer.email}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
                 <button type="submit" className="btn btn-dark">
-                  S&apos;inscrire
+                  {t.footer.subscribe}
                 </button>
               </form>
             )}
@@ -561,10 +532,12 @@ export default function App() {
         </div>
 
         <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} DIJA Beauty — Agdal-Ryad, Rabat</p>
+          <p>
+            {t.footer.rights.replace('{year}', String(new Date().getFullYear()))}
+          </p>
           <div>
-            <a href="#contact">Confidentialité</a>
-            <a href="#contact">Conditions</a>
+            <a href="#contact">{t.footer.privacy}</a>
+            <a href="#contact">{t.footer.terms}</a>
           </div>
         </div>
       </footer>

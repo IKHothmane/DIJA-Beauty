@@ -148,6 +148,38 @@ ul {
   justify-self: end;
 }
 
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  margin-inline-end: 0.35rem;
+  padding: 0.15rem;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.lang-switch button {
+  min-width: 2rem;
+  height: 1.85rem;
+  padding: 0 0.4rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  transition: background 0.2s, color 0.2s;
+}
+
+.lang-switch button:hover,
+.lang-switch button.active {
+  background: var(--pink-500);
+  color: var(--white);
+}
+
+.lang-switch.mobile {
+  width: fit-content;
+  margin: 0;
+}
+
 .icon-btn {
   width: 2.4rem;
   height: 2.4rem;
@@ -1199,6 +1231,75 @@ ul {
 
   .cat-grid {
     grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* —— RTL / Arabe —— */
+html[dir='rtl'] {
+  --font-display: 'Noto Naskh Arabic', 'Cormorant Garamond', serif;
+  --font-body: 'Noto Sans Arabic', 'Outfit', sans-serif;
+}
+
+html[dir='rtl'] body {
+  font-family: var(--font-body);
+}
+
+html[dir='rtl'] .hero h1 em {
+  font-style: normal;
+  font-weight: 600;
+}
+
+html[dir='rtl'] .nav-desktop,
+html[dir='rtl'] .hero-eyebrow,
+html[dir='rtl'] .btn,
+html[dir='rtl'] .trust-row li,
+html[dir='rtl'] .section-sub,
+html[dir='rtl'] .link-all,
+html[dir='rtl'] .add-cart,
+html[dir='rtl'] .cat-meta span,
+html[dir='rtl'] .service strong,
+html[dir='rtl'] .footer h4,
+html[dir='rtl'] .announce {
+  letter-spacing: 0;
+}
+
+html[dir='rtl'] .btn svg,
+html[dir='rtl'] .link-all svg,
+html[dir='rtl'] .cat-meta span svg {
+  transform: scaleX(-1);
+}
+
+html[dir='rtl'] .btn:hover svg {
+  transform: scaleX(-1) translateX(-4px);
+}
+
+html[dir='rtl'] .cart-badge {
+  right: auto;
+  left: 2px;
+}
+
+html[dir='rtl'] .wish {
+  right: auto;
+  left: 0.5rem;
+}
+
+html[dir='rtl'] .hero-stage::before {
+  left: 0.55rem;
+  right: 1.85rem;
+}
+
+@media (min-width: 768px) {
+  html[dir='rtl'] .hero-stage {
+    padding: 2rem 0.4rem 2rem 3.2rem;
+  }
+
+  html[dir='rtl'] .hero-stage::before {
+    left: 1.7rem;
+    right: 1.7rem;
+  }
+
+  html[dir='rtl'] .hero-copy {
+    padding: 3rem 4.5vw 3rem 2.5rem;
   }
 }
 
